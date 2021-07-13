@@ -21,7 +21,6 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
   @ViewChild('canvasElement', { read: ElementRef, static: false }) canvasRef: ElementRef;
   width: 0;
   height: 0;
-  classes = [];
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: string
@@ -126,10 +125,9 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
   buildDetectedObjects(scores, threshold, boxes, classes) {
     const detectionObjects = []
     // var video_frame = document.getElementById('frame');
-    this.classes = [];
+
     scores[0].forEach((score, i) => {
       if (score > threshold) {
-        this.classes.push(classes[0][i]);
         const bbox = [];
         const minY = boxes[0][i][0] * this.videoPlayer.nativeElement.offsetHeight;
         const minX = boxes[0][i][1] * this.videoPlayer.nativeElement.offsetWidth;
@@ -141,7 +139,7 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
         bbox[3] = maxY - minY;
         detectionObjects.push({
           class: classes[0][i],
-          label: cocoLabels[classes[0][i]],
+          label: cocoLabels[Math.round(classes[0][i])],
           score: score.toFixed(4),
           bbox: bbox
         })
@@ -162,7 +160,7 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
     //Getting predictions
     const boxes = predictions[0].arraySync();
     const scores = predictions[6].arraySync();
-    const classes = predictions[2].round().arraySync()
+    const classes = predictions[2].arraySync()
 
     const detections = this.buildDetectedObjects(scores, this.threshold,
       boxes, classes);
