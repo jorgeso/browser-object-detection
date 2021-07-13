@@ -162,7 +162,7 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
     //Getting predictions
     const boxes = predictions[0].arraySync();
     const scores = predictions[6].arraySync();
-    const classes = predictions[2].arraySync()
+    const classes = predictions[2].round().arraySync()
 
     const detections = this.buildDetectedObjects(scores, this.threshold,
       boxes, classes);
