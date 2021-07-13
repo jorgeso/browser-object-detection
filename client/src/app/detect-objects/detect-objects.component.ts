@@ -5,7 +5,7 @@ import { cocoLabels } from './coco_labels.constant';
 import { PLATFORM_ID, Inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { take, takeUntil, takeWhile } from 'rxjs/operators';
 
 // Based on the following tutorial and repository:
 // https://blog.tensorflow.org/2021/01/custom-object-detection-in-browser.html
@@ -23,7 +23,7 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
   @ViewChild('canvasElement', { read: ElementRef, static: false }) canvasRef: ElementRef;
   width: 0;
   height: 0;
-  private modelInit: BehaviorSubject<void> = new BehaviorSubject<void>(null);
+  private modelInit: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: string
@@ -57,12 +57,10 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
         })
         .then(stream => {
           this.videoPlayer.nativeElement.srcObject = stream;
-          loadGraphModel('assets/models/ssd_model.json').then(response => {
-            this.model = response;
-            this.modelInit.next();
-          });
+          this.loadModel();
         }).catch(error => {
           console.log(error);
+          alert('This doesn\'t work unless you give access to the camera. Refresh and try again.')
         });
     }
   }
@@ -71,11 +69,23 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
     this.stopStreamedVideo();
   }
 
+  loadModel() {
+    loadGraphModel('assets/models/ssd_model.json').then(response => {
+      this.model = response;
+      this.modelInit.next(true);
+    }).catch(error => {
+      console.log(error);
+    });
+  }
+
   handleOnLoad(): void {
     const videoDims = this.videoDimensions();
     this.setDimmensions(videoDims);
-    this.modelInit.pipe(take(1)).subscribe(() => {
-      this.detectFrame();
+    const subscription = this.modelInit.subscribe(isInit => {
+      if (isInit) {
+        this.detectFrame();
+        subscription.unsubscribe();
+      }
     });
   }
 
