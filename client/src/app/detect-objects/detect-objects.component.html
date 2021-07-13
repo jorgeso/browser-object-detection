@@ -1,4 +1,7 @@
 <div class="container">
+    <div style="position: fixed; top: 20px; left: 20px;">
+        {{classes}}
+    </div>
     <video autoPlay playsInline muted #videoPlayer (loadeddata)="handleOnLoad()"></video>
     <canvas #canvasElement></canvas>
 </div>

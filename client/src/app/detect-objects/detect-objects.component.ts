@@ -21,6 +21,7 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
   @ViewChild('canvasElement', { read: ElementRef, static: false }) canvasRef: ElementRef;
   width: 0;
   height: 0;
+  classes = [];
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: string
@@ -125,9 +126,11 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
   buildDetectedObjects(scores, threshold, boxes, classes) {
     const detectionObjects = []
     // var video_frame = document.getElementById('frame');
-
+    this.classes = [];
     scores[0].forEach((score, i) => {
       if (score > threshold) {
+        this.classes.push(classes[0][i]);
+        this.classes.push(classes[1][i]);
         const bbox = [];
         const minY = boxes[0][i][0] * this.videoPlayer.nativeElement.offsetHeight;
         const minX = boxes[0][i][1] * this.videoPlayer.nativeElement.offsetWidth;
