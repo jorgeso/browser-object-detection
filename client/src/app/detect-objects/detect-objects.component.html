@@ -1,4 +1,4 @@
 <div class="container">
-    <video autoPlay playsInline muted #videoPlayer (loadeddata)="detectFrame()" [width]="width" [height]="height"></video>
-    <canvas #canvasElement [width]="width" [height]="height"></canvas>
+    <video autoPlay playsInline muted #videoPlayer (loadeddata)="handleOnLoad()"></video>
+    <canvas #canvasElement></canvas>
 </div>

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
 import { loadGraphModel } from '@tensorflow/tfjs-converter';
 import { cocoLabels } from './coco_labels.constant';
@@ -17,8 +17,8 @@ import { isPlatformBrowser } from '@angular/common';
 export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy {
   private threshold = 0.7;
   model: tf.GraphModel;
-  @ViewChild('videoPlayer', { read: ElementRef }) videoPlayer: ElementRef;
-  @ViewChild('canvasElement', { read: ElementRef }) canvasRef: ElementRef;
+  @ViewChild('videoPlayer', { read: ElementRef, static: false }) videoPlayer: ElementRef;
+  @ViewChild('canvasElement', { read: ElementRef, static: false }) canvasRef: ElementRef;
   width: 0;
   height: 0;
 
@@ -67,9 +67,13 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
     this.stopStreamedVideo();
   }
 
+  handleOnLoad(): void {
+    const videoDims = this.videoDimensions();
+    this.setDimmensions(videoDims);
+    this.detectFrame();
+  }
+
   detectFrame() {
-    this.width = this.videoPlayer.nativeElement.videoWidth;
-    this.height = this.videoPlayer.nativeElement.videoHeight;
     tf.engine().startScope();
     this.model.executeAsync(this.processInput()).then(predictions => {
       this.renderPredictions(predictions);
@@ -80,6 +84,36 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
     }, error => {
       console.log(error);
     });
+  }
+
+  setDimmensions(videoDims): void {
+    this.videoPlayer.nativeElement.width = videoDims.width;
+    this.canvasRef.nativeElement.width = videoDims.width;
+    this.videoPlayer.nativeElement.height = videoDims.height;
+    this.canvasRef.nativeElement.height = videoDims.height;
+  }
+
+  // https://stackoverflow.com/questions/17056654/getting-the-real-html5-video-width-and-height
+  videoDimensions() {
+    // Ratio of the video's intrisic dimensions
+    const videoRatio = this.videoPlayer.nativeElement.videoWidth / this.videoPlayer.nativeElement.videoHeight;
+    // The width and height of the video element
+    let width = this.videoPlayer.nativeElement.offsetWidth
+    let height = this.videoPlayer.nativeElement.offsetHeight;
+    // The ratio of the element's width to its height
+    const elementRatio = width/height;
+    // If the video element is short and wide
+    if (elementRatio > videoRatio) {
+      width = height * videoRatio;
+    }
+    // It must be tall and thin, or exactly equal to the original ratio
+    else {
+      height = width / videoRatio;
+    }
+    return {
+      width: width,
+      height: height
+    };
   }
 
   processInput() {
@@ -163,7 +197,7 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
 
   stopStreamedVideo() {
     // https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack/stop
-    const stream = this.canvasRef.nativeElement.srcObject;
+    const stream = this.videoPlayer.nativeElement.srcObject;
     if (stream != null) {
       const tracks = stream.getTracks();
     
@@ -171,7 +205,7 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
         track.stop();
       });
     
-      this.canvasRef.nativeElement.srcObject = null;
+      this.videoPlayer.nativeElement.srcObject = null;
     }
   }
 }
