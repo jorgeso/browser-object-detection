@@ -45,7 +45,7 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
         })
         .then(stream => {
           this.videoPlayer.nativeElement.srcObject = stream;
-          loadGraphModel('/assets/models/ssd_model.json').then(response => {
+          loadGraphModel('assets/models/ssd_model.json').then(response => {
             this.model = response;
           });
         }).catch(error => {
