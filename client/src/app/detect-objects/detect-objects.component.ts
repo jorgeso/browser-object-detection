@@ -104,8 +104,8 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
         bbox[2] = maxX - minX;
         bbox[3] = maxY - minY;
         detectionObjects.push({
-          class: classes[i],
-          label: cocoLabels[classes[i]],
+          class: classes[0][i],
+          label: cocoLabels[classes[0][i]] || cocoLabels[classes[1][i]],
           score: score.toFixed(4),
           bbox: bbox
         })
@@ -126,7 +126,10 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
     //Getting predictions
     const boxes = predictions[0].arraySync();
     const scores = predictions[6].arraySync();
-    const classes = predictions[2].dataSync();
+    const classes = {
+      0: predictions[2].dataSync(),
+      1: predictions[3].dataSync()
+    }
     
     const detections = this.buildDetectedObjects(scores, this.threshold,
       boxes, classes);
