@@ -38,10 +38,19 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
       // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
       // https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamConstraints
       // https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints
+
+      let facingMode = 'user';
+
+      if( /Android|webOS|iPhone|iPad|Mac|Macintosh|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+        facingMode = 'environment'
+      }
+
       navigator.mediaDevices
         .getUserMedia({
           audio: false,
-          video: true
+          video: {
+            facingMode: facingMode
+          }
         })
         .then(stream => {
           this.videoPlayer.nativeElement.srcObject = stream;
