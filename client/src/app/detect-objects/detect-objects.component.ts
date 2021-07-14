@@ -4,8 +4,7 @@ import { loadGraphModel } from '@tensorflow/tfjs-converter';
 import { cocoLabels } from './coco_labels.constant';
 import { PLATFORM_ID, Inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { BehaviorSubject } from 'rxjs';
-import { take, takeUntil, takeWhile } from 'rxjs/operators';
+import { BehaviorSubject, Subscription } from 'rxjs';
 
 // Based on the following tutorial and repository:
 // https://blog.tensorflow.org/2021/01/custom-object-detection-in-browser.html
@@ -24,6 +23,7 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
   width: 0;
   height: 0;
   private modelInit: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  private subscriptions: Array<Subscription> = [];
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: string
@@ -67,6 +67,9 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
 
   ngOnDestroy() {
     this.stopStreamedVideo();
+    this.subscriptions.forEach(subscription => {
+      subscription.unsubscribe();
+    });
   }
 
   loadModel() {
@@ -84,9 +87,9 @@ export class DetectObjectsComponent implements OnInit, AfterViewInit, OnDestroy 
     const subscription = this.modelInit.subscribe(isInit => {
       if (isInit) {
         this.detectFrame();
-        subscription.unsubscribe();
       }
     });
+    this.subscriptions.push(subscription);
   }
 
   detectFrame() {
